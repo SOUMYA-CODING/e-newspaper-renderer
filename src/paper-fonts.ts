@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { PaperFont } from "./types";
+import type { FontDescriptor } from "./document/types";
 
 const GOOGLE_WEIGHTS = "ital,wght@0,400;0,600;0,700;0,800;1,400;1,700";
 
@@ -10,7 +10,7 @@ export function googleFontHref(fontFamily: string): string {
   return `https://fonts.googleapis.com/css2?family=${family}:${GOOGLE_WEIGHTS}&display=block`;
 }
 
-export function fontStack(font: PaperFont): string {
+export function fontStack(font: FontDescriptor): string {
   return `"${font.font_family}", Georgia, "Times New Roman", serif`;
 }
 
@@ -24,7 +24,7 @@ function ensureStylesheet(href: string, key: string) {
   document.head.appendChild(link);
 }
 
-function ensureUploadedFace(font: PaperFont) {
+function ensureUploadedFace(font: FontDescriptor) {
   if (typeof document === "undefined") return;
   const src = font.font_file || font.font_url;
   if (!src) return;
@@ -36,7 +36,7 @@ function ensureUploadedFace(font: PaperFont) {
   document.head.appendChild(style);
 }
 
-export function usePaperFonts(...fonts: PaperFont[]) {
+export function usePaperFonts(...fonts: FontDescriptor[]) {
   const signature = fonts
     .map((font) => `${font.font_source}:${font.font_family}:${font.font_file ?? font.font_url ?? ""}`)
     .join("|");

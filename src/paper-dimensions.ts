@@ -1,9 +1,9 @@
-import type { TemplateFormat } from "./types";
+import type { PaperFormat } from "./document/types";
 
-export type { TemplateFormat };
+export type { PaperFormat };
 
 export const PAPER_DIMENSIONS: Record<
-  TemplateFormat,
+  PaperFormat,
   { width: number; height: number; label: string }
 > = {
   broadsheet: { width: 1296, height: 1728, label: '13.5" × 18"' },
@@ -29,7 +29,7 @@ export const FOOTER_RESERVE = 34;
 
 export type PaperMargins = { top: number; right: number; bottom: number; left: number };
 
-export function asTemplateFormat(value: string | undefined | null): TemplateFormat {
+export function asPaperFormat(value: string | undefined | null): PaperFormat {
   if (
     value === "broadsheet" ||
     value === "tabloid" ||
@@ -43,14 +43,14 @@ export function asTemplateFormat(value: string | undefined | null): TemplateForm
 }
 
 export function pageContentWidth(
-  format: TemplateFormat,
+  format: PaperFormat,
   margins: Pick<PaperMargins, "left" | "right"> = DEFAULT_PAPER_MARGINS
 ): number {
   return PAPER_DIMENSIONS[format].width - margins.left - margins.right;
 }
 
 export function pageContentHeight(
-  format: TemplateFormat,
+  format: PaperFormat,
   margins: Pick<PaperMargins, "top" | "bottom"> = DEFAULT_PAPER_MARGINS
 ): number {
   const { height } = PAPER_DIMENSIONS[format];
@@ -61,7 +61,7 @@ export function pageContentHeight(
 }
 
 export function pageRowCapacity(
-  format: TemplateFormat,
+  format: PaperFormat,
   margins: Pick<PaperMargins, "top" | "bottom"> = DEFAULT_PAPER_MARGINS
 ): number {
   return Math.max(3, Math.floor(pageContentHeight(format, margins) / PAPER_ROW_UNIT));

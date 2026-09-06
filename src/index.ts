@@ -1,172 +1,83 @@
-export type {
-  TemplateFormat,
-  StoryDensity,
-  LayoutRole,
-  PaperFont,
-  PaperPreviewArticle,
-  PaperPreviewInput,
-  PaperRenderArticleSnapshot,
-  PaperRenderTemplate,
-  PaperRenderTheme,
-  PaperRenderFont,
-  PaperRenderEdition,
-  PaperRenderBundle,
-  ResolveMediaUrl,
-} from "./types";
+export {
+  DOCUMENT_SCHEMA_VERSION,
+  BLOCK_TYPES,
+  type BlockType,
+  type PaperFormat,
+  type DocumentBlock,
+  type DocumentPage as DocumentPageData,
+  type PageMargins,
+  type EditionDocument,
+  type FontDescriptor,
+  type ThemeTokens,
+  type EditionStyle,
+  type RenderBundle,
+  type ResolveMediaUrl,
+} from "./document/types";
+
+export {
+  DocumentSchemaError,
+  DEFAULT_MARGINS,
+  isBlockType,
+  assertSupportedDocument,
+  resolveMargins,
+  sortedPages,
+  pageByNumber,
+  renderableBlocks,
+  documentIsEmpty,
+  contentWidth,
+  columnWidth,
+  columnX,
+  spanWidth,
+} from "./document/validate";
 
 export {
   PAPER_DIMENSIONS,
   DEFAULT_PAPER_MARGINS,
   DEFAULT_GRID_GAP,
-  PAPER_ROW_UNIT,
-  MASTHEAD_RESERVE,
-  FOOTER_RESERVE,
-  asTemplateFormat,
-  pageRowCapacity,
+  asPaperFormat,
   pageContentWidth,
   pageContentHeight,
   columnSpanWidth,
   rowSpanHeight,
-  type PaperMargins,
 } from "./paper-dimensions";
 
-export {
-  headlineFontSize,
-  bodyFontSize,
-  kickerFontSize,
-  dekFontSize,
-  bodyColumnCount,
-  headlineLineHeight,
-  BODY_LINE_HEIGHT,
-} from "./paper-typography";
-
-export {
-  fitParagraphsToBox,
-  useFittedParagraphs,
-  useDocumentFontsReady,
-  useFitRegistry,
-  FitRegistryProvider,
-  useReportedCut,
-  useReportCut,
-  type FitOutcome,
-  type FitOptions,
-} from "./paper-fit";
-
-export {
-  usePaperFonts,
-  waitForPaperFonts,
-  googleFontHref,
-  fontStack,
-} from "./paper-fonts";
-
-export {
-  getPaperMargins,
-  getGridGap,
-  stripHtml,
-  snapshotToPreviewArticle,
-  buildPaperPreviewFromRenderBundle,
-  canPreviewPaper,
-} from "./paper-preview";
-
-export {
-  zoneHintsFromSchema,
-  computePageLayouts,
-  computePageBlocks,
-  buildPageGeometry,
-  storyBoxMetrics,
-  storyFitRatio,
-  storyFitReport,
-  furnitureGeometry,
-  roleForArticle,
-  imageHeightFor,
-  imageAspectRatio,
-  maxLayoutRow,
-  paginateByPageNumber,
-  paginateBroadsheet,
-  buildEditionPages,
-  type ZoneHint,
-  type ComputedArticleLayout,
-  type FillerBlock,
-  type PageGeometry,
-  type StoryBoxMetrics,
-  type StoryFitReport,
-  type StoryFitState,
-  type EditionPage,
-  type BroadsheetPage,
-} from "./paper-layout";
-
-export {
-  extractColumnParagraphs,
-  stripRichEmbeds,
-  truncatePlain,
-  resolveEffectiveDensity,
-  buildStoryBody,
-  splitDropcap,
-  bodyCharBudget,
-  leadParagraphLimit,
-  estimateCharCapacity,
-  sliceParagraphsToBudget,
-  remainderAfterChars,
-  totalBodyChars,
-  plainDek,
-  type StoryBody,
-  type TextBoxMetrics,
-} from "./paper-content";
-
-export {
-  buildPaperEditionPages,
-  usePaperEditionPages,
-  usePaperEditionPagesFromInput,
-  resolveUploadedPdfUrl,
-  type PaperEditionPagesResult,
-} from "./use-paper-edition-pages";
+export { usePaperFonts, waitForPaperFonts, googleFontHref, fontStack } from "./paper-fonts";
 
 export { sanitizeArticleHtml, looksLikeHtml } from "./sanitize-html";
 
 export {
-  ENewspaperBroadsheetRenderer,
-  type ENewspaperBroadsheetRendererProps,
-} from "./ENewspaperBroadsheetRenderer";
+  DocumentPage,
+  paperVariables,
+  type DocumentPageProps,
+} from "./render/DocumentPage";
 
 export {
-  ENewspaperPaperViewer,
-  ENewspaperPrintPages,
-  type ENewspaperPaperViewerProps,
-  type ENewspaperPrintPagesProps,
-} from "./ENewspaperPaperViewer";
+  DocumentViewer,
+  type DocumentViewerProps,
+} from "./render/DocumentViewer";
 
 export {
-  ENewspaperPageComposer,
-  type ENewspaperPageComposerProps,
-  type ComposerPatch,
-} from "./ENewspaperPageComposer";
+  DocumentPrint,
+  RENDER_READY_ATTRIBUTE,
+  type DocumentPrintProps,
+} from "./render/DocumentPrint";
 
 export {
-  parseMasthead,
-  buildHighlights,
-  buildTopStories,
-  planFrontPageFurniture,
-  hasInlineFrontPagePanels,
-  type FurnitureKind,
-  type FurnitureBlock,
-  type FurnitureGeometry,
-  type PaperContact,
-  type PaperEditorial,
-  type PaperQuote,
-  type PaperHighlight,
-  type PaperMasthead,
-} from "./paper-furniture";
+  renderBlockBody,
+  blockPositionStyle,
+  type BlockContext,
+} from "./render/blocks";
 
 export {
-  PaperNameplate,
-  PaperEditionBar,
-  PaperRunningHead,
-  PaperHighlightsStrip,
-  PaperFrontPagePanels,
-  TopStoriesPanel,
-  EditorialPanel,
-  QuotePanel,
-  StandsForPanel,
-  PaperFooter,
-  type PaperTokens,
-} from "./ENewspaperPageFurniture";
+  fitStory,
+  bodyFontFamily,
+  type FitState,
+  type StoryFitInput,
+  type StoryFitResult,
+} from "./measure/fitStory";
+
+export {
+  autoArrange,
+  type ArrangeArticle,
+  type ArrangeOptions,
+} from "./arrange/autoArrange";
