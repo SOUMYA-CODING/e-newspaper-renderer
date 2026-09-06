@@ -141,6 +141,9 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
   const bodySize = num(p.body_size, 12);
   const bodyColumns = Math.max(1, num(p.body_columns, 1));
   const showImage = p.show_image !== false;
+  const showDek = p.show_dek !== false;
+  const showBody = p.show_body !== false;
+  const showByline = p.show_byline !== false;
   const image = showImage ? media(ctx, p.image) : null;
 
   return (
@@ -161,7 +164,7 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
         {str(p.headline)}
       </h2>
 
-      {p.dek ? (
+      {showDek && p.dek ? (
         <p
           style={{
             margin: "0 0 10px",
@@ -178,7 +181,7 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
         </p>
       ) : null}
 
-      {p.byline ? (
+      {showByline && p.byline ? (
         <div
           style={{
             fontFamily: "var(--paper-sans)",
@@ -202,23 +205,27 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
         tokens={tokens}
       />
 
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          fontFamily: fontStack(body_font),
-          fontSize: bodySize,
-          lineHeight: 1.46,
-          color: tokens.text,
-          textAlign: "justify",
-          hyphens: "auto",
-          columnCount: bodyColumns,
-          columnGap: 16,
-          columnRule: `1px solid ${tokens.rule}`,
-        }}
-        dangerouslySetInnerHTML={html(p.body_text)}
-      />
+      {showBody ? (
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+            fontFamily: fontStack(body_font),
+            fontSize: bodySize,
+            lineHeight: 1.46,
+            color: tokens.text,
+            textAlign: "justify",
+            hyphens: "auto",
+            columnCount: bodyColumns,
+            columnGap: 16,
+            columnRule: `1px solid ${tokens.rule}`,
+          }}
+          dangerouslySetInnerHTML={html(p.body_text)}
+        />
+      ) : (
+        <div style={{ flex: 1, minHeight: 0 }} />
+      )}
 
       {block.jump_to_page ? (
         <div
