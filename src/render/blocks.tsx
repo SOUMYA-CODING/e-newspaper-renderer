@@ -28,6 +28,19 @@ function media(ctx: BlockContext, url: unknown): string | null {
   return ctx.resolveMediaUrl ? ctx.resolveMediaUrl(raw) : raw;
 }
 
+function mastheadDefaults(ctx: BlockContext) {
+  const masthead = (ctx.style.masthead ?? {}) as Record<string, unknown>;
+  const contact = (masthead.contact ?? {}) as Record<string, unknown>;
+  return {
+    title: str(masthead.title),
+    edition_label: str(masthead.edition_label),
+    price: str(masthead.price),
+    website: str(contact.website),
+    email: str(contact.email),
+    phone: str(contact.phone),
+  };
+}
+
 function Kicker({ text, color }: { text: string; color: string }) {
   if (!text) return null;
   return (
@@ -298,8 +311,14 @@ function MastheadBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext
 function EditionBarBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext }) {
   const p = block.props ?? {};
   const { tokens } = ctx.style;
-  const left = arr(p.left).map((v) => str(v));
-  const right = arr(p.right).map((v) => str(v));
+  const defaults = mastheadDefaults(ctx);
+  const ownLeft = arr(p.left).map((v) => str(v)).filter(Boolean);
+  const ownRight = arr(p.right).map((v) => str(v)).filter(Boolean);
+  const left = ownLeft.length > 0 ? ownLeft : [defaults.edition_label].filter(Boolean);
+  const right =
+    ownRight.length > 0
+      ? ownRight
+      : [defaults.price, defaults.website].filter(Boolean);
   const cell = (items: string[]) => items.join("  |  ");
 
   return (
@@ -658,6 +677,9 @@ function ImageBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
 function FolioBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext }) {
   const p = block.props ?? {};
   const { tokens } = ctx.style;
+  const defaults = mastheadDefaults(ctx);
+  const left = str(p.left) || defaults.title;
+  const center = str(p.center) || defaults.website;
   return (
     <div
       style={{
@@ -674,8 +696,8 @@ function FolioBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
         opacity: 0.7,
       }}
     >
-      <span>{str(p.left)}</span>
-      <span>{str(p.center)}</span>
+      <span>{left}</span>
+      <span>{center}</span>
       <span>{str(p.right)}</span>
     </div>
   );
