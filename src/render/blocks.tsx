@@ -495,12 +495,25 @@ function EditionBarBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockConte
   );
 }
 
+type HighlightImagePosition = "top" | "bottom" | "left" | "right";
+
+function highlightImagePosition(value: unknown): HighlightImagePosition {
+  return value === "bottom" || value === "left" || value === "right"
+    ? value
+    : "top";
+}
+
 function HighlightsBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext }) {
   const p = block.props ?? {};
   const { tokens, headline_font } = ctx.style;
   const items = arr(p.items) as Record<string, unknown>[];
   const showTitle = p.show_title === true;
   const title = str(p.title, "Today's highlights");
+  const showImages = p.show_images === true;
+  const position = highlightImagePosition(p.image_position);
+  const imageHeight = num(p.image_h, 64);
+  const imageRatio = Math.min(0.6, Math.max(0.2, num(p.image_ratio, 0.35)));
+  const sideImage = position === "left" || position === "right";
 
   return (
     <div
@@ -533,43 +546,82 @@ function HighlightsBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockConte
           {title}
         </div>
       ) : null}
-      {items.map((item, i) => (
-        <div
-          key={i}
-          style={{
-            padding: "10px 14px",
-            borderLeft:
-              i === 0 && !showTitle ? "none" : `1px solid ${tokens.rule}`,
-            minWidth: 0,
-          }}
-        >
-          <Kicker text={str(item.section)} color={tokens.accent} />
-          <div
+      {items.map((item, i) => {
+        const image = showImages ? media(ctx, item.image) : null;
+
+        const picture = image ? (
+          <img
+            src={image}
+            alt=""
             style={{
-              fontFamily: fontStack(headline_font),
-              fontWeight: 700,
-              fontSize: 17,
-              lineHeight: 1.15,
-              color: tokens.text,
+              display: "block",
+              width: "100%",
+              height: sideImage ? "100%" : imageHeight,
+              minHeight: 0,
+              objectFit: "cover",
+              background: tokens.surface,
             }}
-          >
-            {str(item.headline)}
-          </div>
-          {item.page ? (
+          />
+        ) : null;
+
+        const text = (
+          <div style={{ minWidth: 0 }}>
+            <Kicker text={str(item.section)} color={tokens.accent} />
             <div
               style={{
-                fontFamily: "var(--paper-sans)",
+                fontFamily: fontStack(headline_font),
                 fontWeight: 700,
-                fontSize: 11,
-                marginTop: 5,
+                fontSize: 17,
+                lineHeight: 1.15,
                 color: tokens.text,
               }}
             >
-              {str(item.page)}
+              {str(item.headline)}
             </div>
-          ) : null}
-        </div>
-      ))}
+            {item.page ? (
+              <div
+                style={{
+                  fontFamily: "var(--paper-sans)",
+                  fontWeight: 700,
+                  fontSize: 11,
+                  marginTop: 5,
+                  color: tokens.text,
+                }}
+              >
+                {str(item.page)}
+              </div>
+            ) : null}
+          </div>
+        );
+
+        return (
+          <div
+            key={i}
+            style={{
+              padding: "10px 14px",
+              borderLeft:
+                i === 0 && !showTitle ? "none" : `1px solid ${tokens.rule}`,
+              minWidth: 0,
+              display: sideImage && picture ? "grid" : "flex",
+              flexDirection: sideImage ? undefined : "column",
+              gridTemplateColumns:
+                sideImage && picture
+                  ? position === "left"
+                    ? `${imageRatio * 100}% 1fr`
+                    : `1fr ${imageRatio * 100}%`
+                  : undefined,
+              gap: picture ? 8 : 0,
+              alignItems: sideImage ? "start" : undefined,
+            }}
+          >
+            {picture && (position === "top" || position === "left") ? picture : null}
+            {text}
+            {picture && (position === "bottom" || position === "right")
+              ? picture
+              : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
