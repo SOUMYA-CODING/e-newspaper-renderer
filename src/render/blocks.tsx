@@ -229,7 +229,9 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
         lineHeight: 1.05,
         letterSpacing: "-.012em",
         color: tokens.text,
-        textWrap: "balance",
+        textWrap:
+          str(p.headline_wrap) === "balance" ? "balance" : "pretty",
+        hyphens: "auto",
         textAlign: align,
       }}
     >
