@@ -65,22 +65,32 @@ function Figure({
   caption,
   height,
   tokens,
+  fill,
 }: {
   src: string | null;
   caption: string;
   height: number;
   tokens: EditionStyle["tokens"];
+  fill?: boolean;
 }) {
   if (!src) return null;
   return (
-    <figure style={{ margin: "0 0 8px" }}>
+    <figure
+      style={
+        fill
+          ? { margin: 0, height: "100%", display: "flex", flexDirection: "column" }
+          : { margin: "0 0 8px" }
+      }
+    >
       <img
         src={src}
         alt=""
         style={{
           display: "block",
           width: "100%",
-          height,
+          height: fill ? "100%" : height,
+          flex: fill ? 1 : undefined,
+          minHeight: 0,
           objectFit: "cover",
           background: tokens.surface,
         }}
@@ -147,6 +157,29 @@ function PanelShell({
   );
 }
 
+type StoryLayout =
+  | "stacked"
+  | "image-top"
+  | "image-left"
+  | "image-right"
+  | "image-bottom"
+  | "image-inset";
+
+const STORY_LAYOUTS: StoryLayout[] = [
+  "stacked",
+  "image-top",
+  "image-left",
+  "image-right",
+  "image-bottom",
+  "image-inset",
+];
+
+function storyLayout(value: unknown): StoryLayout {
+  return STORY_LAYOUTS.includes(value as StoryLayout)
+    ? (value as StoryLayout)
+    : "stacked";
+}
+
 function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext }) {
   const p = block.props ?? {};
   const { tokens, headline_font, body_font } = ctx.style;
@@ -158,67 +191,163 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
   const showBody = p.show_body !== false;
   const showByline = p.show_byline !== false;
   const image = showImage ? media(ctx, p.image) : null;
+  const layout = image ? storyLayout(p.layout) : "stacked";
+  const side = layout === "image-left" || layout === "image-right";
+  const imageRatio = Math.min(0.75, Math.max(0.2, num(p.image_ratio, 0.42)));
+  const align = str(p.headline_align) === "center" ? "center" : "left";
 
-  return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Kicker text={str(p.kicker)} color={tokens.accent} />
-      <h2
+  const headline = (
+    <h2
+      style={{
+        margin: "0 0 8px",
+        fontFamily: fontStack(headline_font),
+        fontWeight: 800,
+        fontSize: headlineSize,
+        lineHeight: 1.05,
+        letterSpacing: "-.012em",
+        color: tokens.text,
+        textWrap: "balance",
+        textAlign: align,
+      }}
+    >
+      {str(p.headline)}
+    </h2>
+  );
+
+  const dek =
+    showDek && p.dek ? (
+      <p
         style={{
-          margin: "0 0 8px",
+          margin: "0 0 10px",
+          paddingBottom: 8,
+          borderBottom: `1px solid ${tokens.rule}`,
           fontFamily: fontStack(headline_font),
-          fontWeight: 800,
-          fontSize: headlineSize,
-          lineHeight: 1.05,
-          letterSpacing: "-.012em",
+          fontSize: Math.round(headlineSize * 0.4),
+          lineHeight: 1.3,
           color: tokens.text,
-          textWrap: "balance",
+          opacity: 0.8,
+          textAlign: align,
         }}
       >
-        {str(p.headline)}
-      </h2>
+        {str(p.dek)}
+      </p>
+    ) : null;
 
-      {showDek && p.dek ? (
-        <p
-          style={{
-            margin: "0 0 10px",
-            paddingBottom: 8,
-            borderBottom: `1px solid ${tokens.rule}`,
-            fontFamily: fontStack(headline_font),
-            fontSize: Math.round(headlineSize * 0.4),
-            lineHeight: 1.3,
-            color: tokens.text,
-            opacity: 0.8,
-          }}
-        >
-          {str(p.dek)}
-        </p>
-      ) : null}
+  const byline =
+    showByline && p.byline ? (
+      <div
+        style={{
+          fontFamily: "var(--paper-sans)",
+          fontSize: 10.5,
+          letterSpacing: ".06em",
+          color: tokens.text,
+          opacity: 0.65,
+          paddingBottom: 6,
+          marginBottom: 8,
+          borderBottom: `1px solid ${tokens.rule}`,
+          textAlign: align,
+        }}
+      >
+        {str(p.byline)}
+      </div>
+    ) : null;
 
-      {showByline && p.byline ? (
+  const head = (
+    <>
+      <Kicker text={str(p.kicker)} color={tokens.accent} />
+      {headline}
+      {dek}
+      {byline}
+    </>
+  );
+
+  const figure = image ? (
+    <Figure
+      src={image}
+      caption={str(p.caption)}
+      height={side ? 0 : num(p.image_h, 180)}
+      tokens={tokens}
+      fill={side}
+    />
+  ) : null;
+
+  const body = showBody ? (
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        fontFamily: fontStack(body_font),
+        fontSize: bodySize,
+        lineHeight: 1.46,
+        color: tokens.text,
+        textAlign: "justify",
+        hyphens: "auto",
+        columnCount: side ? 1 : bodyColumns,
+        columnGap: 16,
+        columnRule: `1px solid ${tokens.rule}`,
+      }}
+      dangerouslySetInnerHTML={html(p.body_text)}
+    />
+  ) : (
+    <div style={{ flex: 1, minHeight: 0 }} />
+  );
+
+  const jump = block.jump_to_page ? (
+    <div
+      style={{
+        fontFamily: "var(--paper-sans)",
+        fontSize: 10.5,
+        color: tokens.accent,
+        textAlign: "right",
+        paddingTop: 6,
+      }}
+    >
+      Continued on Page {block.jump_to_page}
+    </div>
+  ) : null;
+
+  if (side) {
+    const imageFirst = layout === "image-left";
+    return (
+      <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        {head}
         <div
           style={{
-            fontFamily: "var(--paper-sans)",
-            fontSize: 10.5,
-            letterSpacing: ".06em",
-            color: tokens.text,
-            opacity: 0.65,
-            paddingBottom: 6,
-            marginBottom: 8,
-            borderBottom: `1px solid ${tokens.rule}`,
+            flex: 1,
+            minHeight: 0,
+            display: "grid",
+            gridTemplateColumns: imageFirst
+              ? `${imageRatio * 100}% 1fr`
+              : `1fr ${imageRatio * 100}%`,
+            gap: 12,
           }}
         >
-          {str(p.byline)}
+          {imageFirst ? (
+            <>
+              <div style={{ minWidth: 0 }}>{figure}</div>
+              <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+                {body}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+                {body}
+              </div>
+              <div style={{ minWidth: 0 }}>{figure}</div>
+            </>
+          )}
         </div>
-      ) : null}
+        {jump}
+      </div>
+    );
+  }
 
-      <Figure
-        src={image}
-        caption={str(p.caption)}
-        height={num(p.image_h, 180)}
-        tokens={tokens}
-      />
-
-      {showBody ? (
+  if (layout === "image-inset") {
+    return (
+      <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        {head}
         <div
           style={{
             flex: 1,
@@ -234,25 +363,48 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
             columnGap: 16,
             columnRule: `1px solid ${tokens.rule}`,
           }}
-          dangerouslySetInnerHTML={html(p.body_text)}
-        />
-      ) : (
-        <div style={{ flex: 1, minHeight: 0 }} />
-      )}
-
-      {block.jump_to_page ? (
-        <div
-          style={{
-            fontFamily: "var(--paper-sans)",
-            fontSize: 10.5,
-            color: tokens.accent,
-            textAlign: "right",
-            paddingTop: 6,
-          }}
         >
-          Continued on Page {block.jump_to_page}
+          <div
+            style={{
+              float: "right",
+              width: `${imageRatio * 100}%`,
+              marginLeft: 12,
+              marginBottom: 8,
+            }}
+          >
+            {figure}
+          </div>
+          {showBody ? (
+            <div dangerouslySetInnerHTML={html(p.body_text)} />
+          ) : null}
         </div>
-      ) : null}
+        {jump}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {layout === "image-top" ? (
+        <>
+          {figure}
+          {head}
+          {body}
+        </>
+      ) : layout === "image-bottom" ? (
+        <>
+          {head}
+          {body}
+          {figure}
+        </>
+      ) : (
+        <>
+          {head}
+          {figure}
+          {body}
+        </>
+      )}
+      {jump}
     </div>
   );
 }
@@ -347,22 +499,47 @@ function HighlightsBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockConte
   const p = block.props ?? {};
   const { tokens, headline_font } = ctx.style;
   const items = arr(p.items) as Record<string, unknown>[];
+  const showTitle = p.show_title === true;
+  const title = str(p.title, "Today's highlights");
 
   return (
     <div
       style={{
         height: "100%",
         display: "grid",
-        gridTemplateColumns: `repeat(${Math.max(1, items.length)}, 1fr)`,
+        gridTemplateColumns: showTitle
+          ? `auto repeat(${Math.max(1, items.length)}, 1fr)`
+          : `repeat(${Math.max(1, items.length)}, 1fr)`,
         borderBottom: `2px solid ${tokens.text}`,
       }}
     >
+      {showTitle ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "10px 14px",
+            background: tokens.accent,
+            color: "#ffffff",
+            fontFamily: "var(--paper-sans)",
+            fontWeight: 700,
+            fontSize: 11,
+            letterSpacing: ".12em",
+            textTransform: "uppercase",
+            maxWidth: 130,
+            lineHeight: 1.2,
+          }}
+        >
+          {title}
+        </div>
+      ) : null}
       {items.map((item, i) => (
         <div
           key={i}
           style={{
             padding: "10px 14px",
-            borderLeft: i === 0 ? "none" : `1px solid ${tokens.rule}`,
+            borderLeft:
+              i === 0 && !showTitle ? "none" : `1px solid ${tokens.rule}`,
             minWidth: 0,
           }}
         >
