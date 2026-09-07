@@ -41,6 +41,25 @@ function mastheadDefaults(ctx: BlockContext) {
   };
 }
 
+type ImageFit = "cover" | "contain" | "fill";
+
+const IMAGE_FOCUS: Record<string, string> = {
+  top: "50% 0%",
+  bottom: "50% 100%",
+  left: "0% 50%",
+  right: "100% 50%",
+  center: "50% 50%",
+};
+
+function imageFitStyle(fit: unknown, focus: unknown): CSSProperties {
+  const value: ImageFit =
+    fit === "contain" || fit === "fill" ? (fit as ImageFit) : "cover";
+  return {
+    objectFit: value,
+    objectPosition: IMAGE_FOCUS[str(focus, "center")] ?? IMAGE_FOCUS.center,
+  };
+}
+
 function Kicker({ text, color }: { text: string; color: string }) {
   if (!text) return null;
   return (
@@ -66,12 +85,16 @@ function Figure({
   height,
   tokens,
   fill,
+  fit,
+  focus,
 }: {
   src: string | null;
   caption: string;
   height: number;
   tokens: EditionStyle["tokens"];
   fill?: boolean;
+  fit?: unknown;
+  focus?: unknown;
 }) {
   if (!src) return null;
   return (
@@ -91,8 +114,8 @@ function Figure({
           height: fill ? "100%" : height,
           flex: fill ? 1 : undefined,
           minHeight: 0,
-          objectFit: "cover",
           background: tokens.surface,
+          ...imageFitStyle(fit, focus),
         }}
       />
       {caption ? (
@@ -268,6 +291,8 @@ function StoryBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
       height={side ? 0 : num(p.image_h, 180)}
       tokens={tokens}
       fill={side}
+      fit={p.image_fit}
+      focus={p.image_focus}
     />
   ) : null;
 
@@ -558,8 +583,11 @@ function HighlightsBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockConte
               width: "100%",
               height: sideImage ? "100%" : imageHeight,
               minHeight: 0,
-              objectFit: "cover",
               background: tokens.surface,
+              ...imageFitStyle(
+                item.image_fit ?? p.image_fit,
+                item.image_focus ?? p.image_focus
+              ),
             }}
           />
         ) : null;
@@ -819,7 +847,12 @@ function AdBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext }) {
       <img
         src={image}
         alt=""
-        style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          ...imageFitStyle(p.image_fit, p.image_focus),
+        }}
       />
     );
   }
@@ -883,7 +916,13 @@ function ImageBlock({ block, ctx }: { block: DocumentBlock; ctx: BlockContext })
       <img
         src={src}
         alt=""
-        style={{ display: "block", width: "100%", flex: 1, minHeight: 0, objectFit: "cover" }}
+        style={{
+          display: "block",
+          width: "100%",
+          flex: 1,
+          minHeight: 0,
+          ...imageFitStyle(p.image_fit, p.image_focus),
+        }}
       />
       {p.caption ? (
         <figcaption
